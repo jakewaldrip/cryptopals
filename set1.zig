@@ -4,25 +4,36 @@ const allocator = std.heap.page_allocator;
 const encoder = std.base64.standard.Encoder;
 
 pub fn main() !void {
-    var hex_str_one = "1c0111001f010100061a024b53535009181c".*;
-    var hex_str_two = "686974207468652062756c6c277320657965".*;
+    var hex_str = "1b37373331363f78151b7f2b783431333d78397828372d363c78373e783a393b3736".*;
 
-    const bytes_one = try hex_to_bytes(&hex_str_one);
+    const bytes_one = try hex_to_bytes(&hex_str);
     defer allocator.free(bytes_one);
 
-    const bytes_two = try hex_to_bytes(&hex_str_two);
-    defer allocator.free(bytes_two);
+    var best_score: f32 = -100000.0;
 
-    const res = fixed_xor(bytes_one, bytes_two);
-    defer allocator.free(res);
+    var best_candidate = try allocator.alloc(u8, hex_str.len * 32);
+    var best_key: u8 = undefined;
+    defer allocator.free(best_candidate);
 
-    std.debug.print("Hex: {s}", .{std.fmt.fmtSliceHexLower(res)});
+    for (0..256) |key_attempt| {
+        const casted_key_attempt = std.math.cast(u8, key_attempt);
+        const candidate = try fixed_xor(bytes_one, casted_key_attempt.?);
+
+        const score = score_english_likeness(candidate);
+        if (score > best_score) {
+            best_score = score;
+            best_candidate = candidate;
+            best_key = casted_key_attempt.?;
+        }
+    }
+
+    std.debug.print("Answer: {s} | Score: {d} | Key: {c}\n", .{ best_candidate, best_score, best_key });
 }
 
-fn fixed_xor(input_one: []u8, input_two: []u8) []u8 {
-    var result = allocator.alloc(u8, input_one.len) catch unreachable;
-    for (input_one, input_two, 0..) |one, two, i| {
-        result[i] = one ^ two;
+fn fixed_xor(input: []u8, key: u8) ![]u8 {
+    var result = try allocator.alloc(u8, input.len);
+    for (input, 0..) |one, i| {
+        result[i] = one ^ key;
     }
     return result;
 }
@@ -38,4 +49,22 @@ fn hex_to_bytes(hex_str: []u8) ![]u8 {
     const bytes_buff = try allocator.alloc(u8, hex_str.len * 32);
     const bytes = try std.fmt.hexToBytes(bytes_buff, hex_str);
     return bytes;
+}
+
+fn score_english_likeness(input: []u8) f32 {
+    var score: f32 = 0;
+    for (input) |c| {
+        const char = std.ascii.toLower(c);
+        if (char >= 'a' and char <= 'z') {
+            score += 1.0;
+        } else if (char == ' ' or char == '\n') {
+            score += 0.5;
+        } else if (char >= 32 and char <= 126) {
+            score += 0.1;
+        } else {
+            score -= 1.0;
+        }
+    }
+
+    return score;
 }
