@@ -15,11 +15,8 @@ pub fn main() !void {
     var best_key: u8 = undefined;
     var best_score: f32 = -100000.0;
 
-    var idx: i32 = 0;
     while (file_iter.next()) |line| {
-        idx = idx + 1;
-
-        const line_slice = if (idx != 327) line[0 .. line.len - 1] else line[0..line.len];
+        const line_slice = std.mem.trim(u8, line, "\r");
         const line_bytes = try hex_to_bytes(line_slice);
         defer allocator.free(line_bytes);
 
