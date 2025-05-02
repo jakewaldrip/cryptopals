@@ -1,36 +1,45 @@
 const std = @import("std");
+const file_input = @embedFile("./file.txt");
 
 const allocator = std.heap.page_allocator;
 const encoder = std.base64.standard.Encoder;
 
 pub fn main() !void {
-    var hex_str = "1b37373331363f78151b7f2b783431333d78397828372d363c78373e783a393b3736".*;
+    var file_iter = std.mem.splitSequence(u8, file_input, "\n");
+    const line_len = file_iter.first().len;
+    file_iter.reset();
 
-    const bytes_one = try hex_to_bytes(&hex_str);
-    defer allocator.free(bytes_one);
-
-    var best_score: f32 = -100000.0;
-
-    var best_candidate = try allocator.alloc(u8, hex_str.len * 32);
-    var best_key: u8 = undefined;
+    var best_candidate = try allocator.alloc(u8, line_len * 32);
     defer allocator.free(best_candidate);
 
-    for (0..256) |key_attempt| {
-        const casted_key_attempt = std.math.cast(u8, key_attempt);
-        const candidate = try fixed_xor(bytes_one, casted_key_attempt.?);
+    var best_key: u8 = undefined;
+    var best_score: f32 = -100000.0;
 
-        const score = score_english_likeness(candidate);
-        if (score > best_score) {
-            best_score = score;
-            best_candidate = candidate;
-            best_key = casted_key_attempt.?;
+    var idx: i32 = 0;
+    while (file_iter.next()) |line| {
+        idx = idx + 1;
+
+        const line_slice = if (idx != 327) line[0 .. line.len - 1] else line[0..line.len];
+        const line_bytes = try hex_to_bytes(line_slice);
+        defer allocator.free(line_bytes);
+
+        for (0..256) |key_attempt| {
+            const casted_key_attempt = std.math.cast(u8, key_attempt);
+            const candidate = try fixed_xor(line_bytes, casted_key_attempt.?);
+
+            const score = score_english_likeness(candidate);
+            if (score > best_score) {
+                best_score = score;
+                best_candidate = candidate;
+                best_key = casted_key_attempt.?;
+            }
         }
     }
 
     std.debug.print("Answer: {s} | Score: {d} | Key: {c}\n", .{ best_candidate, best_score, best_key });
 }
 
-fn fixed_xor(input: []u8, key: u8) ![]u8 {
+fn fixed_xor(input: []const u8, key: u8) ![]u8 {
     var result = try allocator.alloc(u8, input.len);
     for (input, 0..) |one, i| {
         result[i] = one ^ key;
@@ -45,7 +54,7 @@ fn bytes_to_b64(bytes: []u8) ![]const u8 {
     return base64_encoded;
 }
 
-fn hex_to_bytes(hex_str: []u8) ![]u8 {
+fn hex_to_bytes(hex_str: []const u8) ![]u8 {
     const bytes_buff = try allocator.alloc(u8, hex_str.len * 32);
     const bytes = try std.fmt.hexToBytes(bytes_buff, hex_str);
     return bytes;
