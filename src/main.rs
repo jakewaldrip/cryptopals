@@ -1,14 +1,28 @@
 use base64::{engine::general_purpose, Engine as _};
 fn main() {
-    let hex_str: String = "1c0111001f010100061a024b53535009181c".into();
-    let key_str: String = "686974207468652062756c6c277320657965".into();
-
+    let hex_str: String = "1b37373331363f78151b7f2b783431333d78397828372d363c78373e783a393b3736".into();
     let hex_bytes = hex_to_bytes(hex_str);
-    let key_hex_bytes = hex_to_bytes(key_str);
 
-    let answer = fixed_xor(hex_bytes, key_hex_bytes);
+    let mut best_candidate: Vec<u8> = Vec::new();
+    let mut best_key: u8 = 0;
+    let mut best_score: f32 = -9999.0;
 
-    println!("Answer: {}", hex::encode(answer));
+    for i in 0..=255 {
+        let candidate = fixed_xor(&hex_bytes, i);
+        let curr_score = score_english_likeness(&candidate);
+
+        if curr_score > best_score {
+            best_score = curr_score;
+            best_candidate = candidate;
+            best_key = i;
+        }
+    }
+
+    println!("Answer: {} | Score: {} | Key: {}", pretty_print_byte_vec(&best_candidate), best_score, best_key);
+}
+
+fn pretty_print_byte_vec(bytes: &[u8]) -> &str {
+    std::str::from_utf8(bytes).unwrap()
 }
 
 fn hex_to_bytes(hex_str: String) -> Vec<u8> {
@@ -19,15 +33,27 @@ fn bytes_to_b64(bytes: Vec<u8>) -> String {
     general_purpose::STANDARD.encode(bytes)
 }
 
-fn fixed_xor(bytes: Vec<u8>, keys: Vec<u8>) -> Vec<u8> {
-    // bytes.iter().map(|byte| {
-    //     byte ^ key
-    // }).collect()
+fn fixed_xor(bytes: &[u8], key: u8) -> Vec<u8> {
+    bytes.iter().map(|byte| {
+        byte ^ key
+    }).collect()
+}
 
-    let mut return_vec: Vec<u8> = Vec::new();
-    for (byte, key_byte) in bytes.iter().zip(keys.iter()){
-        return_vec.push(byte ^ key_byte);
-    };
+fn score_english_likeness(input: &[u8]) -> f32 {
+    let mut score: f32 = 0.0;
+    for c in input {
+        let char: char = c.clone().into();
+        let char_ascii = char.to_ascii_lowercase();
+        if char_ascii >= 'a' && char_ascii <= 'z' {
+            score += 1.0;
+        } else if char_ascii == ' ' || char_ascii == '\n' {
+            score += 0.5;
+        } else if *c >= 32 && *c <= 126 {
+            score += 0.1;
+        } else {
+            score -= 1.0;
+        }
+    }
 
-    return_vec
+    return score;
 }
