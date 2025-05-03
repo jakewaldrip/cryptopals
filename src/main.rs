@@ -1,20 +1,23 @@
 use base64::{engine::general_purpose, Engine as _};
 fn main() {
-    let hex_str: String = "1b37373331363f78151b7f2b783431333d78397828372d363c78373e783a393b3736".into();
-    let hex_bytes = hex_to_bytes(hex_str);
+    let contents = std::fs::read_to_string("file.txt")
+    .unwrap();
 
     let mut best_candidate: Vec<u8> = Vec::new();
     let mut best_key: u8 = 0;
     let mut best_score: f32 = -9999.0;
 
-    for i in 0..=255 {
-        let candidate = fixed_xor(&hex_bytes, i);
-        let curr_score = score_english_likeness(&candidate);
+    for line in contents.lines() {
+        let hex_bytes = hex_to_bytes(line.into());
+        for i in 0..=255 {
+            let candidate = fixed_xor(&hex_bytes, i);
+            let curr_score = score_english_likeness(&candidate);
 
-        if curr_score > best_score {
-            best_score = curr_score;
-            best_candidate = candidate;
-            best_key = i;
+            if curr_score > best_score {
+                best_score = curr_score;
+                best_candidate = candidate;
+                best_key = i;
+            }
         }
     }
 
