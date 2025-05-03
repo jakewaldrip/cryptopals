@@ -11,7 +11,6 @@ fn main() {
 
     let answer = repeating_xor(&hex_bytes, &key_bytes);
     println!("Answer: {}", hex::encode(answer));
-
 }
 
 // fn pretty_print_byte_vec(bytes: &[u8]) -> &str {
