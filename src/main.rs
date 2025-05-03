@@ -32,9 +32,9 @@ fn hex_to_bytes(hex_str: String) -> Vec<u8> {
     hex::decode(hex_str).unwrap()
 }
 
-fn bytes_to_b64(bytes: Vec<u8>) -> String {
-    general_purpose::STANDARD.encode(bytes)
-}
+// fn bytes_to_b64(bytes: Vec<u8>) -> String {
+//     general_purpose::STANDARD.encode(bytes)
+// }
 
 fn fixed_xor(bytes: &[u8], key: u8) -> Vec<u8> {
     bytes.iter().map(|byte| {
