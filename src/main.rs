@@ -1,4 +1,4 @@
-use base64::{engine::general_purpose, Engine as _};
+// use base64::{engine::general_purpose, Engine as _};
 fn main() {
     let contents = std::fs::read_to_string("file.txt")
     .unwrap();
