@@ -1,9 +1,6 @@
 // use base64::{engine::general_purpose, Engine as _};
 fn main() {
-    let str_1: String = "this is a test".into();
-    let str_2: String = "wokka wokka!!!".into();
-    let hamming_distance = calc_hamming_distance(&str_1, &str_2);
-    println!("Hamming distance: {hamming_distance}");
+    let mut key_size = 2;
 }
 
 fn calc_hamming_distance(str_1: &str, str_2: &str) -> i32 {
