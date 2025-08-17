@@ -1,17 +1,5 @@
 // use base64::{engine::general_purpose, Engine as _};
-fn main() {
-    let input_string: String = "Burning 'em, if you ain't quick and nimble\nI go crazy when I hear a cymbal".into();
-    let input_key: String = "ICE".into();
-
-    let hex_str = string_to_hex(&input_string);
-    let hex_key = string_to_hex(&input_key);
-
-    let hex_bytes = hex_to_bytes(hex_str);
-    let key_bytes = hex_to_bytes(hex_key);
-
-    let answer = repeating_xor(&hex_bytes, &key_bytes);
-    println!("Answer: {}", hex::encode(answer));
-}
+fn main() {}
 
 // fn pretty_print_byte_vec(bytes: &[u8]) -> &str {
 //     std::str::from_utf8(bytes).unwrap()
