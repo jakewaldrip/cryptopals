@@ -1,9 +1,47 @@
 // use base64::{engine::general_purpose, Engine as _};
-fn main() {}
+fn main() {
+    let str_1: String = "this is a test".into();
+    let str_2: String = "wokka wokka!!!".into();
+    let hamming_distance = calc_hamming_distance(&str_1, &str_2);
+    println!("Hamming distance: {hamming_distance}");
+}
+
+fn calc_hamming_distance(str_1: &str, str_2: &str) -> i32 {
+    if str_1.len() != str_2.len() {
+        panic!("Strings aren't the same length, hamming distance failed");
+    }
+
+    let str_1_bits: String = str_1
+        .as_bytes()
+        .iter()
+        .map(|&c| format!("{c:08b}"))
+        .collect();
+    let str_2_bits: String = str_2
+        .as_bytes()
+        .iter()
+        .map(|&c| format!("{c:08b}"))
+        .collect();
+
+    let str_1_bits_bytes: Vec<u8> = str_1_bits.as_bytes().into();
+    let str_2_bits_bytes: Vec<u8> = str_2_bits.as_bytes().into();
+    let mut hamming_distance = 0;
+
+    for i in 0..str_1_bits_bytes.len() {
+        let comp_1 = str_1_bits_bytes[i];
+        let comp_2 = str_2_bits_bytes[i];
+
+        if comp_1 != comp_2 {
+            hamming_distance += 1;
+        }
+    }
+
+    hamming_distance
+}
 
 // fn pretty_print_byte_vec(bytes: &[u8]) -> &str {
 //     std::str::from_utf8(bytes).unwrap()
 // }
+//
 
 fn repeating_xor(bytes: &[u8], repeating_key: &[u8]) -> Vec<u8> {
     let mut return_vec: Vec<u8> = Vec::new();
